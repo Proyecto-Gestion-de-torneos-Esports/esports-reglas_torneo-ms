@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class ReglaToneoResponse {
+public class ReglaTorneoResponseDTO {
     private Long id;
     private Integer minimoJugadores;
     private String descripcion;

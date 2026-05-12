@@ -1,6 +1,9 @@
 package Esports.Reglas_Torneo.dto;
 
 import jakarta.validation.constraints.*;
+import lombok.Data;
+
+@Data
 
 public class ReglaTorneoRequestDTO {
 
@@ -13,7 +16,7 @@ public class ReglaTorneoRequestDTO {
     @NotNull(message = "El ID del torneo es obligatorio ")
     private Long torneo_id;
 
-    @NotNull(message = ("El Id de juego es obligatorio"))
+    @NotNull(message = ("El ID de juego es obligatorio"))
     private Long juego_id;
 
     private Boolean activo;
