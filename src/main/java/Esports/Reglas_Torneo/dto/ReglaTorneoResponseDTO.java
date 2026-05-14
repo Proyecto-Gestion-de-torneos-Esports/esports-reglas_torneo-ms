@@ -9,8 +9,8 @@ public class ReglaTorneoResponseDTO {
     private Long id;
     private Integer minimoJugadores;
     private String descripcion;
-    private Long torneo_id;
-    private Long juego_id;
+    private Long torneoId;
+    private Long juegoId;
     private Boolean activo;
 }
 

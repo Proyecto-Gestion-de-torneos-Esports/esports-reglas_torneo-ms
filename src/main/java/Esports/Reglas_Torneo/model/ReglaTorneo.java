@@ -17,10 +17,10 @@ public class ReglaTorneo {
     private Integer minimoJugadores;
     @Column(length = 500)
     private String descripcion;
-
-    private Long  torneo_id;
-
-    private Long juego_id;
-
+    @Column(name = "torneo_id", nullable = false)
+    private Long  torneoId;
+    @Column(name = "juego_id", nullable = false)
+    private Long juegoId;
+    @Column(nullable = false)
     private Boolean activo;
 }
