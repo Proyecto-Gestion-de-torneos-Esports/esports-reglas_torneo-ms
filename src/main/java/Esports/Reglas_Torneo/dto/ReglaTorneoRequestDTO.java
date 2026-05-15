@@ -20,5 +20,6 @@ public class ReglaTorneoRequestDTO {
     @NotNull(message = ("El ID de juego es obligatorio"))
     private Long juegoId;
 
+    @NotNull(message = "El campo activo es obligatorio")
     private Boolean activo;
 }
