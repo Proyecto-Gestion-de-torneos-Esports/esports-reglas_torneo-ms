@@ -22,7 +22,7 @@ public class TorneoReglaController {
         return ResponseEntity.ok(reglaTorneoService.obtenerTodos());
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("{id}")
     public ResponseEntity<ReglaTorneoResponseDTO> buscarPorId(@PathVariable Long id){
         return ResponseEntity.ok(reglaTorneoService.obtenerPorId(id));
     }
