@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -33,8 +32,10 @@ public class ReglaTorneoService {
 
     public ReglaTorneoResponseDTO mapToDTO(ReglaTorneo regla){
         return new ReglaTorneoResponseDTO(
-                regla.getReglasTorneo_id(),
+                regla.getReglasTorneoId(),
                 regla.getMinimoJugadores(),
+                regla.getRequiereHandCam(),
+                regla.getRequiereAntiCheat(),
                 regla.getDescripcion(),
                 regla.getTorneoId(),
                 regla.getJuegoId(),
@@ -72,16 +73,18 @@ public class ReglaTorneoService {
         torneoClient.obtenerTorneoPorId(dto.getTorneoId());
         juegoClient.obtenerJuegoPorId(dto.getJuegoId());
 
-        ReglaTorneo nuevaRegla = new ReglaTorneo(
-                null,
-                dto.getMinimoJugadores(),
-                dto.getDescripcion(),
-                dto.getTorneoId(),
-                dto.getJuegoId(),
-                true
-        );
+        ReglaTorneo nuevaRegla = new ReglaTorneo();
+        nuevaRegla.setMinimoJugadores(dto.getMinimoJugadores());
+        nuevaRegla.setRequiereHandCam(dto.getRequiereHandCam());
+        nuevaRegla.setRequiereAntiCheat(dto.getRequiereAntiCheat());
+        nuevaRegla.setDescripcion(dto.getDescripcion());
+        nuevaRegla.setTorneoId(dto.getTorneoId());
+        nuevaRegla.setJuegoId(dto.getJuegoId());
+        nuevaRegla.setActivo(true);
+
+
         ReglaTorneo reglaCreada = reglaTorneoRepository.save(nuevaRegla);
-        log.info("Regla de torneo con ID : {} fue creada exitosamente ", reglaCreada.getReglasTorneo_id());
+        log.info("Regla de torneo con ID : {} fue creada exitosamente ", reglaCreada.getReglasTorneoId());
         generarAuditoria("Se creo una nueva Regla para el torneo");
         return mapToDTO(reglaCreada);
 
@@ -95,6 +98,8 @@ public class ReglaTorneoService {
                     return new ReglaTorneoNotFoundException("No se puede actualizar, ID" +id+ "no encontrado");
                 });
         existente.setMinimoJugadores(dto.getMinimoJugadores());
+        existente.setRequiereHandCam(dto.getRequiereHandCam());
+        existente.setRequiereAntiCheat(dto.getRequiereAntiCheat());
         existente.setDescripcion(dto.getDescripcion());
         existente.setTorneoId(dto.getTorneoId());
         existente.setJuegoId(dto.getJuegoId());

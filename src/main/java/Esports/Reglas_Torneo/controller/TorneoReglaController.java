@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/reglas_torneo")
+@RequestMapping("/api/reglas")
 @RequiredArgsConstructor
 public class TorneoReglaController {
     private final ReglaTorneoService reglaTorneoService;
@@ -22,7 +22,7 @@ public class TorneoReglaController {
         return ResponseEntity.ok(reglaTorneoService.obtenerTodos());
     }
 
-    @GetMapping("{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<ReglaTorneoResponseDTO> buscarPorId(@PathVariable Long id){
         return ResponseEntity.ok(reglaTorneoService.obtenerPorId(id));
     }

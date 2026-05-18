@@ -1,15 +1,22 @@
 package Esports.Reglas_Torneo.dto;
 
 import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-
+@AllArgsConstructor
+@NoArgsConstructor
 public class ReglaTorneoRequestDTO {
 
     @NotNull(message = "Minimo de jugadores obligatorio")
     @Min(value = 1, message = "Debe haber al menos 1 jugador mínimo")
     private Integer minimoJugadores;
+    @NotNull(message = "Debe especificar si requiere HandCam")
+    private Boolean requiereHandCam;
+    @NotNull(message = "Debe especificar si requiere AntiCheat")
+    private Boolean requiereAntiCheat;
     @NotBlank(message = "La descripcion no puede estar vacia")
     @Size(max = 500, message = "La descripción no puede superar los 500 caracteres")
     private String descripcion;
