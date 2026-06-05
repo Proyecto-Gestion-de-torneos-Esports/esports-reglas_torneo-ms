@@ -13,10 +13,8 @@ public class ReglaTorneo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long reglasTorneoId;
-
-    private Integer minimoJugadores;
-    private Boolean requiereHandCam;
-    private Boolean requiereAntiCheat;
+    @Column(name = "jugadores_requeridos")
+    private Integer jugadoresRequeridos;
     @Column(length = 500)
     private String descripcion;
     @Column(name = "torneo_id", nullable = false)

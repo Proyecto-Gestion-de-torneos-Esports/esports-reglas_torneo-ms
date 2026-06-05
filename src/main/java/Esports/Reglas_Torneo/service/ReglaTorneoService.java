@@ -7,7 +7,7 @@ import Esports.Reglas_Torneo.dto.AuditoriaRequestDTO;
 import Esports.Reglas_Torneo.dto.AuditoriaResponseDTO;
 import Esports.Reglas_Torneo.dto.ReglaTorneoRequestDTO;
 import Esports.Reglas_Torneo.dto.ReglaTorneoResponseDTO;
-import Esports.Reglas_Torneo.exception.ReglaTorneoNotFoundException;
+import Esports.Reglas_Torneo.exception.ReglaTorneoNotConnected;
 import Esports.Reglas_Torneo.model.ReglaTorneo;
 import Esports.Reglas_Torneo.repository.ReglaTorneoRepository;
 import lombok.RequiredArgsConstructor;
@@ -33,9 +33,7 @@ public class ReglaTorneoService {
     public ReglaTorneoResponseDTO mapToDTO(ReglaTorneo regla){
         return new ReglaTorneoResponseDTO(
                 regla.getReglasTorneoId(),
-                regla.getMinimoJugadores(),
-                regla.getRequiereHandCam(),
-                regla.getRequiereAntiCheat(),
+                regla.getJugadoresRequeridos(),
                 regla.getDescripcion(),
                 regla.getTorneoId(),
                 regla.getJuegoId(),
@@ -64,7 +62,7 @@ public class ReglaTorneoService {
 
         }
         log.warn("No se encontro con la regla de torneo con el ID: '{}'", id);
-        throw new ReglaTorneoNotFoundException("Regla con id " + id+ "no encontrada");
+        throw new ReglaTorneoNotConnected("Regla con id " + id+ "no encontrada");
     }
     @Transactional
     public ReglaTorneoResponseDTO CrearRegla(ReglaTorneoRequestDTO dto){
@@ -74,9 +72,7 @@ public class ReglaTorneoService {
         juegoClient.obtenerJuegoPorId(dto.getJuegoId());
 
         ReglaTorneo nuevaRegla = new ReglaTorneo();
-        nuevaRegla.setMinimoJugadores(dto.getMinimoJugadores());
-        nuevaRegla.setRequiereHandCam(dto.getRequiereHandCam());
-        nuevaRegla.setRequiereAntiCheat(dto.getRequiereAntiCheat());
+        nuevaRegla.setJugadoresRequeridos(dto.getJugadoresRequeridos());
         nuevaRegla.setDescripcion(dto.getDescripcion());
         nuevaRegla.setTorneoId(dto.getTorneoId());
         nuevaRegla.setJuegoId(dto.getJuegoId());
@@ -95,11 +91,9 @@ public class ReglaTorneoService {
         ReglaTorneo existente  = reglaTorneoRepository.findById(id)
                 .orElseThrow(() -> {
                     log.warn("Fallo la modificacion de regla torneo con ID '{}'", id);
-                    return new ReglaTorneoNotFoundException("No se puede actualizar, ID" +id+ "no encontrado");
+                    return new ReglaTorneoNotConnected("No se puede actualizar, ID" +id+ "no encontrado");
                 });
-        existente.setMinimoJugadores(dto.getMinimoJugadores());
-        existente.setRequiereHandCam(dto.getRequiereHandCam());
-        existente.setRequiereAntiCheat(dto.getRequiereAntiCheat());
+        existente.setJugadoresRequeridos(dto.getJugadoresRequeridos());
         existente.setDescripcion(dto.getDescripcion());
         existente.setTorneoId(dto.getTorneoId());
         existente.setJuegoId(dto.getJuegoId());
@@ -116,7 +110,7 @@ public class ReglaTorneoService {
         log.info("Eliminando la regla con el ID: {} ", id);
         if (!reglaTorneoRepository.existsById(id)){
             log.error("Fallo al eliminar: La regla de torneo con ID: {} ", id);
-            throw new ReglaTorneoNotFoundException(" no se puede eliminar, id " + id + " no encontrado" );
+            throw new ReglaTorneoNotConnected(" no se puede eliminar, id " + id + " no encontrado" );
         }
         reglaTorneoRepository.findById(id).ifPresent(reglaTorneo -> {
             reglaTorneo.setActivo(false);
