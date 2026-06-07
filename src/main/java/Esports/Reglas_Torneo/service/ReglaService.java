@@ -3,11 +3,7 @@ package Esports.Reglas_Torneo.service;
 import Esports.Reglas_Torneo.client.AuditoriaClient;
 import Esports.Reglas_Torneo.client.JuegoClient;
 import Esports.Reglas_Torneo.client.TorneoClient;
-import Esports.Reglas_Torneo.dto.AuditoriaRequestDTO;
-import Esports.Reglas_Torneo.dto.AuditoriaResponseDTO;
-import Esports.Reglas_Torneo.dto.ReglaTorneoRequestDTO;
-import Esports.Reglas_Torneo.dto.ReglaTorneoResponseDTO;
-import Esports.Reglas_Torneo.exception.ReglaTorneoNotConnected;
+import Esports.Reglas_Torneo.dto.*;
 import Esports.Reglas_Torneo.model.ReglaTorneo;
 import Esports.Reglas_Torneo.repository.ReglaTorneoRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +19,7 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class ReglaTorneoService {
+public class ReglaService {
 
     private final ReglaTorneoRepository reglaTorneoRepository;
     private final AuditoriaClient auditoriaClient;
@@ -33,11 +29,15 @@ public class ReglaTorneoService {
     public ReglaTorneoResponseDTO mapToDTO(ReglaTorneo regla){
         return new ReglaTorneoResponseDTO(
                 regla.getReglasTorneoId(),
-                regla.getJugadoresRequeridos(),
-                regla.getDescripcion(),
                 regla.getTorneoId(),
                 regla.getJuegoId(),
+                regla.getJugadoresRequeridos(),
+                regla.getFechaLimiteInscripcion(),
+                regla.getCupoMaximoEquipos(),
+                regla.getFormatoMejorDe(),
+                regla.getDescripcion(),
                 regla.getActivo()
+
 
         );
     }
@@ -53,50 +53,73 @@ public class ReglaTorneoService {
 
     @Transactional(readOnly = true)
     public ReglaTorneoResponseDTO obtenerPorId(long id) {
-        log.info("Iniciando busqueda ID: {}", id);
-        Optional<ReglaTorneo> regla = reglaTorneoRepository.findById(id);
+        log.info("Buscando reglas con ID {}", id);
+        ReglaTorneo regla = reglaTorneoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("La regla de torneo con ID " + id + " no existe."));
 
-        if (regla.isPresent()){
-            log.info("Regla de Torneo con ID: {} encontrado exitosamente ", id);
-            return regla.map(this::mapToDTO).orElseThrow();
-
-        }
-        log.warn("No se encontro con la regla de torneo con el ID: '{}'", id);
-        throw new ReglaTorneoNotConnected("Regla con id " + id+ "no encontrada");
+        return mapToDTO(regla);
     }
     @Transactional
-    public ReglaTorneoResponseDTO CrearRegla(ReglaTorneoRequestDTO dto){
-        log.info("Creando una nueva regla para el torneo con ID: {} y juego ID {} ", dto.getTorneoId(), dto.getJuegoId());
+    public ReglaTorneoResponseDTO crearReglas(ReglaTorneoRequestDTO dto) {
+        log.info("Iniciando creación de reglas para el torneo ID {}", dto.getTorneoId());
 
-        torneoClient.obtenerTorneoPorId(dto.getTorneoId());
-        juegoClient.obtenerJuegoPorId(dto.getJuegoId());
+        TorneoResponseDTO torneo = torneoClient.obtenerTorneoPorId(dto.getTorneoId());
+        JuegoResponseDTO juego = juegoClient.obtenerJuegoPorId(dto.getJuegoId());
+
+        if (!dto.getJuegoId().equals(torneo.getIdJuego())) {
+            throw new RuntimeException("Error: El juego ID " + dto.getJuegoId() + " no coincide con el juego asignado a este torneo (ID " + torneo.getIdJuego() + ").");
+        }
+
+        if (dto.getFechaLimiteInscripcion().isAfter(torneo.getFecha()) || dto.getFechaLimiteInscripcion().isEqual(torneo.getFecha())) {
+            throw new RuntimeException("Error: La fecha límite de inscripción debe ser anterior a la fecha de inicio del torneo (" + torneo.getFecha() + ").");
+        }
+
+        int cupos = dto.getCupoMaximoEquipos();
+        boolean potenciaDeDos = (cupos > 0) && ((cupos & (cupos - 1)) == 0);
+
+        if (!potenciaDeDos || cupos < 4) {
+            throw new RuntimeException("Error: El cupo máximo de equipos debe ser de 2 4, 8, 16, 32, 64.");
+        }
+        if (dto.getJugadoresRequeridos() <= 0) {
+            throw new RuntimeException("Error: La cantidad de jugadores requerida debe ser al menos 1.");
+        }
+        if (dto.getFormatoMejorDe() == null || dto.getFormatoMejorDe() <= 0 || dto.getFormatoMejorDe() % 2 == 0 ){
+            throw new RuntimeException("Error: El formato de partida debe ser un numero impar mayor a 0 para evitar empates");
+        }
 
         ReglaTorneo nuevaRegla = new ReglaTorneo();
-        nuevaRegla.setJugadoresRequeridos(dto.getJugadoresRequeridos());
-        nuevaRegla.setDescripcion(dto.getDescripcion());
         nuevaRegla.setTorneoId(dto.getTorneoId());
         nuevaRegla.setJuegoId(dto.getJuegoId());
-        nuevaRegla.setActivo(true);
+        nuevaRegla.setJugadoresRequeridos(dto.getJugadoresRequeridos());
+        nuevaRegla.setFechaLimiteInscripcion(dto.getFechaLimiteInscripcion());
+        nuevaRegla.setCupoMaximoEquipos(dto.getCupoMaximoEquipos());
+        nuevaRegla.setFormatoMejorDe(dto.getFormatoMejorDe());
+        nuevaRegla.setActivo(dto.getActivo());
 
+        ReglaTorneo guardada = reglaTorneoRepository.save(nuevaRegla);
+        log.info("Reglas guardadas exitosamente con ID {}", guardada.getReglasTorneoId());
+        generarAuditoria("regla guardada");
 
-        ReglaTorneo reglaCreada = reglaTorneoRepository.save(nuevaRegla);
-        log.info("Regla de torneo con ID : {} fue creada exitosamente ", reglaCreada.getReglasTorneoId());
-        generarAuditoria("Se creo una nueva Regla para el torneo");
-        return mapToDTO(reglaCreada);
-
+        return mapToDTO(guardada);
     }
+
+
     @Transactional
     public  ReglaTorneoResponseDTO actualizarRegla(Long id, ReglaTorneoRequestDTO dto){
         log.info("Actualizando datos de las reglas del torneo con ID: {} ", id);
         ReglaTorneo existente  = reglaTorneoRepository.findById(id)
                 .orElseThrow(() -> {
                     log.warn("Fallo la modificacion de regla torneo con ID '{}'", id);
-                    return new ReglaTorneoNotConnected("No se puede actualizar, ID" +id+ "no encontrado");
+                    return new RuntimeException("No se puede actualizar, ID" +id+ "no encontrado");
                 });
-        existente.setJugadoresRequeridos(dto.getJugadoresRequeridos());
-        existente.setDescripcion(dto.getDescripcion());
         existente.setTorneoId(dto.getTorneoId());
         existente.setJuegoId(dto.getJuegoId());
+        existente.setJugadoresRequeridos(dto.getJugadoresRequeridos());
+        existente.setFechaLimiteInscripcion(dto.getFechaLimiteInscripcion());
+        existente.setCupoMaximoEquipos(dto.getCupoMaximoEquipos());
+        existente.setDescripcion(dto.getDescripcion());
+        existente.setFormatoMejorDe(dto.getFormatoMejorDe());
+
         existente.setActivo(dto.getActivo());
 
         ReglaTorneo reglaActualizada = reglaTorneoRepository.save(existente);
@@ -110,7 +133,7 @@ public class ReglaTorneoService {
         log.info("Eliminando la regla con el ID: {} ", id);
         if (!reglaTorneoRepository.existsById(id)){
             log.error("Fallo al eliminar: La regla de torneo con ID: {} ", id);
-            throw new ReglaTorneoNotConnected(" no se puede eliminar, id " + id + " no encontrado" );
+            throw new RuntimeException(" no se puede eliminar, id " + id + " no encontrado" );
         }
         reglaTorneoRepository.findById(id).ifPresent(reglaTorneo -> {
             reglaTorneo.setActivo(false);
