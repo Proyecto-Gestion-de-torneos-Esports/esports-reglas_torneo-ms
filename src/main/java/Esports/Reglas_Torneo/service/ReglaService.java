@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,8 +25,8 @@ public class ReglaService {
     private final JuegoClient juegoClient;
     private final TorneoClient torneoClient;
 
-    public ReglaTorneoResponseDTO mapToDTO(ReglaTorneo regla){
-        return new ReglaTorneoResponseDTO(
+    public ReglaResponseDTO mapToDTO(ReglaTorneo regla){
+        return new ReglaResponseDTO(
                 regla.getReglasTorneoId(),
                 regla.getTorneoId(),
                 regla.getJuegoId(),
@@ -43,7 +42,7 @@ public class ReglaService {
     }
 
     @Transactional(readOnly = true)
-    public List<ReglaTorneoResponseDTO> obtenerTodos() {
+    public List<ReglaResponseDTO> obtenerTodos() {
         log.info("Consultando todas las reglas del torneo");
         return reglaTorneoRepository.findAll()
                 .stream()
@@ -52,7 +51,7 @@ public class ReglaService {
     }
 
     @Transactional(readOnly = true)
-    public ReglaTorneoResponseDTO obtenerPorId(long id) {
+    public ReglaResponseDTO obtenerPorId(long id) {
         log.info("Buscando reglas con ID {}", id);
         ReglaTorneo regla = reglaTorneoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("La regla de torneo con ID " + id + " no existe."));
@@ -60,7 +59,7 @@ public class ReglaService {
         return mapToDTO(regla);
     }
     @Transactional
-    public ReglaTorneoResponseDTO crearReglas(ReglaTorneoRequestDTO dto) {
+    public ReglaResponseDTO crearReglas(ReglaRequestDTO dto) {
         log.info("Iniciando creación de reglas para el torneo ID {}", dto.getTorneoId());
 
         TorneoResponseDTO torneo = torneoClient.obtenerTorneoPorId(dto.getTorneoId());
@@ -105,7 +104,7 @@ public class ReglaService {
 
 
     @Transactional
-    public  ReglaTorneoResponseDTO actualizarRegla(Long id, ReglaTorneoRequestDTO dto){
+    public ReglaResponseDTO actualizarRegla(Long id, ReglaRequestDTO dto){
         log.info("Actualizando datos de las reglas del torneo con ID: {} ", id);
         ReglaTorneo existente  = reglaTorneoRepository.findById(id)
                 .orElseThrow(() -> {
