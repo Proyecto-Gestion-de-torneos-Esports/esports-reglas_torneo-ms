@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,6 +27,7 @@ public class ReglaController {
 
     @Operation(summary = "Listar todas las reglas", description = "Devuelve una lista de todas las reglas registradas en el sistema con sus enlaces de navegacion")
     @ApiResponse(responseCode = "200", description = "Listado obtenido correctamente")
+    @PreAuthorize("hasRole('JUGADOR') or hasRole('COACH') or hasRole('ARBITRO') or hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<List<ReglaResponseDTO>> obtenerTodos() {
         List<ReglaResponseDTO> lista = reglaService.obtenerTodos().stream()
@@ -39,6 +41,7 @@ public class ReglaController {
             @ApiResponse(responseCode = "200", description = "Regla encontrada exitosamente"),
             @ApiResponse(responseCode = "404", description = "Regla no encontrada")
     })
+    @PreAuthorize("hasRole('JUGADOR') or hasRole('COACH') or hasRole('ARBITRO') or hasRole('ADMIN')")
     @GetMapping("/{id}")
     public ResponseEntity<ReglaResponseDTO> buscarPorId(@PathVariable Long id) {
         ReglaResponseDTO regla = reglaService.obtenerPorId(id);
@@ -47,6 +50,7 @@ public class ReglaController {
 
     @Operation(summary = "Crear nueva regla", description = "Registra una nueva regla en el sistema")
     @ApiResponse(responseCode = "201", description = "Regla creada exitosamente")
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<ReglaResponseDTO> crear(@Valid @RequestBody ReglaRequestDTO dto) {
         ReglaResponseDTO nuevaRegla = reglaService.crearReglas(dto);
@@ -58,6 +62,7 @@ public class ReglaController {
             @ApiResponse(responseCode = "200", description = "Regla actualizada exitosamente"),
             @ApiResponse(responseCode = "404", description = "Regla no encontrada para actualizar")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<ReglaResponseDTO> actualizar(@PathVariable Long id, @Valid @RequestBody ReglaRequestDTO dto) {
         ReglaResponseDTO reglaActualizada = reglaService.actualizarRegla(id, dto);
@@ -69,6 +74,7 @@ public class ReglaController {
             @ApiResponse(responseCode = "204", description = "Regla eliminada exitosamente"),
             @ApiResponse(responseCode = "404", description = "Regla no encontrada")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         reglaService.eliminarRegla(id);

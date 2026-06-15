@@ -1,15 +1,21 @@
 package Esports.Reglas_Torneo.controller;
 
+import Esports.Reglas_Torneo.assemblers.ReglaModelAssemblers;
 import Esports.Reglas_Torneo.dto.ReglaRequestDTO;
 import Esports.Reglas_Torneo.dto.ReglaResponseDTO;
+import Esports.Reglas_Torneo.security.JwtFilter;
+import Esports.Reglas_Torneo.security.SecurityConfig;
 import Esports.Reglas_Torneo.service.ReglaService;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
@@ -22,8 +28,14 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.web.servlet.MockMvc;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+
 
 @WebMvcTest(ReglaController.class)
+@Import({ReglaModelAssemblers.class})
+@WithMockUser(roles = "ADMIN")
 public class ReglaControllerTest {
     @Autowired
     private MockMvc mockMvc;
